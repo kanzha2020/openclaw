@@ -1,0 +1,166 @@
+graph TB
+    subgraph User["👤 User Interfaces"]
+        CLI["CLI / TUI<br/><code>src/cli</code> · <code>src/tui</code> · <code>src/terminal</code>"]
+        WebUI["Web UI<br/><code>ui/</code> — LitElement + Vite"]
+        MacOS["macOS App<br/><code>apps/macos</code>"]
+        iOS["iOS App<br/><code>apps/ios</code>"]
+        Android["Android App<br/><code>apps/android</code> — Kotlin"]
+        Swabble["Swabble CLI<br/><code>Swabble/</code> — Swift Package"]
+    end
+
+    subgraph Core["🦞 Core Engine — <code>src/</code> (TypeScript)"]
+        Entry["Entry Point<br/><code>src/entry.ts</code> · <code>src/index.ts</code>"]
+        Config["Config<br/><code>src/config</code>"]
+        Agents["Agent Runtime<br/><code>src/agents</code>"]
+        Gateway["WebSocket Gateway<br/><code>src/gateway</code>"]
+        Router["Message Router<br/><code>src/routing</code>"]
+        Sessions["Session Manager<br/><code>src/sessions</code>"]
+        Daemon["Daemon<br/><code>src/daemon</code>"]
+        Cron["Cron Scheduler<br/><code>src/cron</code>"]
+        ContextEngine["Context Engine<br/><code>src/context-engine</code>"]
+        Memory["Memory<br/><code>src/memory</code>"]
+        PluginSDK["Plugin SDK<br/><code>src/plugin-sdk</code>"]
+        PluginLoader["Plugin Loader<br/><code>src/plugins</code>"]
+        ACP["ACP Server<br/><code>src/acp</code>"]
+    end
+
+    subgraph Capabilities["⚙️ AI Capabilities — <code>src/</code>"]
+        AutoReply["Auto-Reply<br/><code>src/auto-reply</code>"]
+        WebSearch["Web Search<br/><code>src/web-search</code>"]
+        ImageGen["Image Generation<br/><code>src/image-generation</code>"]
+        MediaUnderstanding["Media Understanding<br/><code>src/media-understanding</code>"]
+        LinkUnderstanding["Link Understanding<br/><code>src/link-understanding</code>"]
+        TTS["Text-to-Speech<br/><code>src/tts</code>"]
+        Browser["Browser<br/><code>src/browser</code>"]
+        CanvasHost["Canvas Host<br/><code>src/canvas-host</code>"]
+    end
+
+    subgraph Channels["💬 Channel Extensions"]
+        direction LR
+        Slack["Slack"]
+        Discord["Discord"]
+        Telegram["Telegram"]
+        WhatsApp["WhatsApp"]
+        iMessage["iMessage"]
+        MSTeams["MS Teams"]
+        Matrix["Matrix"]
+        IRC["IRC"]
+        Signal["Signal"]
+        Line["LINE"]
+        Feishu["Feishu"]
+        Nostr["Nostr"]
+        MoreCh["Zalo · GoogleChat<br/>Mattermost · Twitch<br/>BlueBubbles · etc."]
+    end
+
+    subgraph Providers["🤖 LLM Provider Extensions"]
+        direction LR
+        Anthropic["Anthropic"]
+        OpenAI["OpenAI"]
+        Google["Google/Gemini"]
+        DeepSeek["DeepSeek"]
+        Ollama["Ollama"]
+        Groq["Groq"]
+        Mistral["Mistral"]
+        OpenRouter["OpenRouter"]
+        Bedrock["AWS Bedrock"]
+        NVIDIA["NVIDIA"]
+        MoreProv["xAI · Together · HuggingFace<br/>Qianfan · Moonshot · vLLM<br/>Copilot · Venice · etc."]
+    end
+
+    subgraph Skills["🛠️ Skills — <code>skills/</code>"]
+        direction LR
+        GitHub["GitHub"]
+        Notion["Notion"]
+        Obsidian["Obsidian"]
+        Slack2["Slack"]
+        Weather["Weather"]
+        CodingAgent["Coding Agent"]
+        AppleNotes["Apple Notes"]
+        SkillCreator["Skill Creator"]
+        MoreSkills["1Password · Trello<br/>Spotify · Summarize<br/>PDF · Voice Call · etc."]
+    end
+
+    subgraph Packages["📦 Packages — <code>packages/</code>"]
+        ClawdBot["clawdbot"]
+        MoltBot["moltbot"]
+    end
+
+    subgraph Infra["🏗️ Infrastructure"]
+        Docker["Docker / Podman<br/>Dockerfile · docker-compose"]
+        Fly["Fly.io Deployment<br/>fly.toml"]
+        Render["Render Deployment<br/>render.yaml"]
+        GHA["GitHub Actions<br/>.github/"]
+    end
+
+    %% User → Core flows
+    CLI --> Entry
+    WebUI -->|WebSocket| Gateway
+    MacOS --> Gateway
+    iOS --> Gateway
+    Android --> Gateway
+    Swabble --> Gateway
+
+    %% Core internal flows
+    Entry --> Config
+    Entry --> Daemon
+    Daemon --> Gateway
+    Gateway --> Router
+    Router --> Agents
+    Agents --> Sessions
+    Agents --> ContextEngine
+    Agents --> Memory
+    Agents --> Cron
+
+    %% Plugin system
+    PluginSDK --> PluginLoader
+    PluginLoader --> Providers
+    PluginLoader --> Channels
+    PluginLoader --> Skills
+
+    %% Capabilities used by Agents
+    Agents --> AutoReply
+    Agents --> WebSearch
+    Agents --> ImageGen
+    Agents --> MediaUnderstanding
+    Agents --> LinkUnderstanding
+    Agents --> TTS
+    Agents --> Browser
+    Agents --> CanvasHost
+
+    %% Channels → Gateway
+    Channels -->|Messages| Gateway
+
+    %% Providers ← Agents
+    Agents -->|LLM Calls| Providers
+
+    %% Skills ← Agents
+    Agents -->|Tool Use| Skills
+
+    %% ACP
+    ACP -->|Agent Control Protocol| Gateway
+
+    %% Packages
+    Packages -.->|shared libs| Core
+
+    %% Deploy
+    Core --> Docker
+    Docker --> Fly
+    Docker --> Render
+
+    %% Styling
+    classDef coreStyle fill:#2d6a4f,stroke:#1b4332,color:#fff
+    classDef uiStyle fill:#3a86ff,stroke:#023e8a,color:#fff
+    classDef channelStyle fill:#f77f00,stroke:#e36414,color:#fff
+    classDef providerStyle fill:#7209b7,stroke:#560bad,color:#fff
+    classDef skillStyle fill:#e63946,stroke:#a4161a,color:#fff
+    classDef infraStyle fill:#6c757d,stroke:#495057,color:#fff
+    classDef capStyle fill:#2a9d8f,stroke:#264653,color:#fff
+
+    class Entry,Config,Agents,Gateway,Router,Sessions,Daemon,Cron,ContextEngine,Memory,PluginSDK,PluginLoader,ACP coreStyle
+    class CLI,WebUI,MacOS,iOS,Android,Swabble uiStyle
+    class Slack,Discord,Telegram,WhatsApp,iMessage,MSTeams,Matrix,IRC,Signal,Line,Feishu,Nostr,MoreCh channelStyle
+    class Anthropic,OpenAI,Google,DeepSeek,Ollama,Groq,Mistral,OpenRouter,Bedrock,NVIDIA,MoreProv providerStyle
+    class GitHub,Notion,Obsidian,Slack2,Weather,CodingAgent,AppleNotes,SkillCreator,MoreSkills skillStyle
+    class Docker,Fly,Render,GHA infraStyle
+    class AutoReply,WebSearch,ImageGen,MediaUnderstanding,LinkUnderstanding,TTS,Browser,CanvasHost capStyle
+    class ClawdBot,MoltBot coreStyle
